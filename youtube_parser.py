@@ -2,11 +2,16 @@ import requests
 import re
 
 HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+    'User-Agent':      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
     'Accept-Language': 'en',
     'Accept-Encoding': 'gzip, deflate',
-    'Connection': 'keep-alive',
-    'Cache-Control': 'max-age=0'
+    'Connection':      'keep-alive',
+    'Cache-Control':   'max-age=0'
+}
+
+REGEX_PATETERNS = {
+    'title': r'"title":{"runs":\[\{"text":"([^"]+)"',  # title
+    'views': r'"views":{"simpleText":"(.*?) views',    # views
 }
 
 def extract_video_info(url):
@@ -67,16 +72,22 @@ def extract_search_results(query):
         html_content = response.content.decode("utf-8")
 
         titles_match = re.findall(
-            r"<title>(.*?) - YouTube</title>", html_content, re.DOTALL
+            r'"title":{"runs":\[\{"text":"([^"]+)"', 
+            html_content
         )
 
-        video_data = {}
-        if titles_match:
-            for i, title_match in enumerate(titles_match):
-                video_data[i + 1] = title_match.group(1).strip()
+        view_count_match = re.findall(
+            r'"viewCountText":{"simpleText":"(.*?) views',
+            html_content
+        )
 
-        return video_data
+        print()
 
+        result = []
+        for title in titles_match:
+            result.append({'title':title, 'view_count_match':view_count_match[0]})
+
+        return result
     except requests.exceptions.RequestException as e:
         print(f"Error: {e}")
         return None
