@@ -1,24 +1,29 @@
 import requests
 import re
 
-HEADERS = {}
+HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+    'Accept-Language': 'en',
+    'Accept-Encoding': 'gzip, deflate',
+    'Connection': 'keep-alive',
+    'Cache-Control': 'max-age=0'
+}
 
 def extract_video_info(url):
     """
-    Extracts video title and view count (might be unreliable) from a Youtube webpage using regular expressions.
+    Extracts video title and view count from a Youtube webpage using regular expressions.
 
     Args:
-        url: The URL of the Youtube video webpage.
+        str url: The URL of the Youtube video webpage.
 
     Returns:
         A dictionary containing extracted information or None if data not found.
     """
     try:
-        response = requests.get(url)
-        response.raise_for_status()  # Raise exception for unsuccessful requests
+        response = requests.get(url, headers=HEADERS)
+        response.raise_for_status()
         html_content = response.content.decode("utf-8")
-        # print(html_content)
-        # Extract video title (might be unreliable)
+
         title_match = re.search(
             r'"title":{"runs":\[\{"text":"([^"]+)"', 
             html_content
@@ -28,9 +33,8 @@ def extract_video_info(url):
         else:
             video_title = None
 
-        # Extract view count (might be unreliable)
         view_count_match = re.search(
-            r',"views":{"simpleText":"(.*?) рет',
+            r'"views":{"simpleText":"(.*?) views',
             html_content
         )
         if view_count_match:
@@ -51,29 +55,26 @@ def extract_search_results(query):
     Extracts video titles and links from a Youtube search results page using regular expressions.
 
     Args:
-        query: The search query for Youtube.
+        str query: The search query for Youtube.
 
     Returns:
-        A dictionary containing video titles and links or None if data not found.
+        A dictionary containing video titles and links.
     """
     try:
         link = "https://www.youtube.com/results"
-        response = requests.get(link, params={"search_query": query})
-        response.raise_for_status()  # Raise exception for unsuccessful requests
+        response = requests.get(link, params={"search_query": query}, headers=HEADERS)
+        response.raise_for_status()
         html_content = response.content.decode("utf-8")
-        # print(html_content)
-        # Extract video titles (might be unreliable)
+
         titles_match = re.findall(
             r"<title>(.*?) - YouTube</title>", html_content, re.DOTALL
         )
 
-        # Create a dictionary to store results
         video_data = {}
         if titles_match:
             for i, title_match in enumerate(titles_match):
-                video_data[i + 1] = title_match.group(1).strip()  # Use index as key
+                video_data[i + 1] = title_match.group(1).strip()
 
-        # Return video data dictionary
         return video_data
 
     except requests.exceptions.RequestException as e:
@@ -82,12 +83,8 @@ def extract_search_results(query):
 
 
 # Example usage
-video_info = extract_video_info("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
-if video_info:
-    print(f"Video Title: {video_info['title']}")
-    print(f"View Count: {video_info['view_count']}")
-else:
-    print("Failed to extract video information.")
+print(extract_video_info("https://www.youtube.com/watch?v=dQw4w9WgXcQ"))
+
 
 
 video_info = extract_search_results("rauan")
