@@ -10,8 +10,8 @@ HEADERS = {
 }
 
 REGEX_PATETERNS = {
-    'title': r'"title":{"runs":\[\{"text":"([^"]+)"',  # title
-    'views': r'"views":{"simpleText":"(.*?) views',    # views
+    'title': r'"title":{"runs":\[\{"text":"([^"]+)"',
+    'views': r'"views":{"simpleText":"(.*?) views',
 }
 
 def extract_video_info(url):
